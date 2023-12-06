@@ -1,12 +1,11 @@
-import cv2
 import cv2 as cv
 import numpy as np
 
 # todo: wyeliminować tło
 
 
-def rescale(img, precentage = 100):
-    return cv2.resize(img, None, fx=precentage/100, fy=precentage/100)
+def rescale(img, precentage=100):
+    return cv.resize(img, None, fx=precentage/100, fy=precentage/100)
 
 
 def watching_potatoes():
@@ -19,7 +18,7 @@ def watching_potatoes():
     ret, frame = cap.read()
 
     # todo: do usunięcia / napisania warunek żeby zdj były poziome
-    image = rescale(cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE), 50)
+    image = rescale(cv.rotate(frame, cv.ROTATE_90_CLOCKWISE), 50)
 
     while True:
         cv.imshow('frame', image)
