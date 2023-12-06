@@ -4,8 +4,8 @@ import numpy as np
 # todo: wyeliminować tło
 
 
-def rescale(img, precentage=100):
-    return cv.resize(img, None, fx=precentage/100, fy=precentage/100)
+def rescale(img, percentage=100):
+    return cv.resize(img, None, fx=percentage/100, fy=percentage/100)
 
 
 def watching_potatoes():
