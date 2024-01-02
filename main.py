@@ -5,8 +5,12 @@ from collections import Counter
 # todo: wyeliminować tło
 
 
-def rescale(img, percentage=100):
-    return cv.resize(img, None, fx=percentage/100, fy=percentage/100)
+def rescale(img, height=200):
+    scale = height / img.shape[0]
+
+    # Skaluj obraz
+    resized_img = cv.resize(img, None, fx=scale, fy=scale)
+    return resized_img
 
 
 def find_black_places(image, image_contours):
@@ -30,7 +34,8 @@ def remove_background_outside_contour(image):
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 
     # Zastosuj binaryzację, aby uzyskać binaryzny obraz
-    _, binary = cv.threshold(gray, 127, 255, cv.THRESH_BINARY)
+    threshold_value = 60
+    _, binary = cv.threshold(gray, threshold_value, 255, cv.THRESH_BINARY)
 
     # Znajdź kontury na binaryznym obrazie
     contours, _ = cv.findContours(binary, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
@@ -50,7 +55,8 @@ def count_objects(image):
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 
     # Zastosuj binaryzację, aby uzyskać binaryzny obraz
-    _, binary = cv.threshold(gray, 127, 255, cv.THRESH_BINARY)
+    threshold_value = 60
+    _, binary = cv.threshold(gray, threshold_value, 255, cv.THRESH_BINARY)
 
     # Znajdź kontury na binaryznym obrazie
     contours, _ = cv.findContours(binary, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
@@ -98,7 +104,7 @@ def watching_potatoes():
         if not ret:
             break
 
-        image = rescale(frame, 45)
+        image = rescale(frame, 600)
 
         if image.shape[0] > image.shape[1]:
             image = cv.rotate(image, cv.ROTATE_90_CLOCKWISE)
