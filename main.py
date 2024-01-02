@@ -1,8 +1,5 @@
 import cv2 as cv
 import numpy as np
-from collections import Counter
-
-# todo: wyeliminować tło
 
 
 def rescale(img, height=200):
@@ -11,6 +8,37 @@ def rescale(img, height=200):
     # Skaluj obraz
     resized_img = cv.resize(img, None, fx=scale, fy=scale)
     return resized_img
+
+
+def find_green_places(image):
+    # Konwertuj obraz do przestrzeni kolorów HSV
+    hsv = cv.cvtColor(image, cv.COLOR_BGR2HSV)
+
+    # Zdefiniuj kolor RGB
+    rgb_color = np.uint8([[[137, 113, 56]]])
+
+    # Konwertuj kolor do przestrzeni HSV
+    hsv_color = cv.cvtColor(rgb_color, cv.COLOR_RGB2HSV)
+
+    # Zdefiniuj zakres koloru w przestrzeni HSV
+    #todo: ustawić dla finalnego obrazu tą tolerację
+
+    # lower_color = np.array([hsv_color[0][0][0] - 10, 100, 100])
+    # upper_color = np.array([hsv_color[0][0][0] + 10, 255, 255])
+
+    lower_color = np.array([hsv_color[0][0][0], 100, 100])
+    upper_color = np.array([hsv_color[0][0][0], 255, 255])
+
+    # Utwórz maskę dla koloru
+    mask = cv.inRange(hsv, lower_color, upper_color)
+
+    # Znajdź kontury na masce
+    contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+    # Narysuj kontury na oryginalnym obrazie
+    cv.drawContours(image, contours, -1, (0, 255, 0), 3)
+
+    return image
 
 
 def find_black_places(image, image_contours):
@@ -50,6 +78,7 @@ def remove_background_outside_contour(image):
     return cv.bitwise_and(image, mask)
 
 
+# todo: naprawic
 def count_objects(image):
     # Konwertuj obraz do skali szarości
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -66,7 +95,7 @@ def count_objects(image):
 
     return object_count
 
-
+# todo: rozkminic po co i czy potrzebne
 # def get_most_common_color(img):
 #     flattened = img.reshape(-1, img.shape[-1])
 #
@@ -74,7 +103,7 @@ def count_objects(image):
 #     print(color)
 #     return color
 
-
+# todo: do poprawy
 def delete_background(image):
     binr = cv.threshold(image, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)[1]
 
@@ -89,7 +118,7 @@ def delete_background(image):
 
 
 def watching_potatoes():
-    cap = cv.VideoCapture('images/3_ziemniaki.jpg')
+    cap = cv.VideoCapture('images/nagranie_1.mp4')
     # cap.set(cv.CAP_PROP_POS_FRAMES, 10)
     if not cap.isOpened():
         print("Cannot open camera")
@@ -112,12 +141,13 @@ def watching_potatoes():
         a, b, c = cv.split(image)
         image_contours = delete_background(a)
 
+        image = find_green_places(image)
         image = find_black_places(image, image_contours)
         # image = remove_background_outside_contour(image)
 
         cv.imshow('frame', image)
         print(count_objects(image))
-        cv.waitKey(300000)
+        cv.waitKey(5)
 
         if cv.waitKey(1) == ord('q'):
             break
