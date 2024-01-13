@@ -27,8 +27,10 @@ def create_potato_mask(image):
         cv.drawContours(mask, [cnt], 0, 255, -1)  # wypełnij kontur wartością 1
         cv.drawContours(mask, [cnt], 0, 255, 1)  # narysuj obwód konturu wartością 1
 
+    mask_image = np.copy(mask)
     mask = np.where(mask == 255, True, False)
-    return mask
+
+    return mask_image, mask
 
 
 def find_green_places(image, potato_mask):
@@ -55,7 +57,7 @@ def find_green_places(image, potato_mask):
     # Narysuj kontury na oryginalnym obrazie
     cv.drawContours(image, contours, -1, (0, 255, 0), 3)
 
-    return image
+    return mask_2, image
 
 
 def find_black_places(image, potato_mask):
@@ -85,6 +87,31 @@ def find_black_places(image, potato_mask):
     # Narysuj kontury na oryginalnym obrazie
     cv.drawContours(image, contours, -1, (255, 0, 0), 3)
 
+    return mask_2, image
+
+
+def mark_defective_objects(image, main_mask, defect_mask, threshold=0.4):
+    # Znajdź kontury na głównej masce
+    contours, _ = cv.findContours(main_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+    # Przejrzyj wszystkie kontury
+    for contour in contours:
+        # Utwórz maskę dla pojedynczego obiektu
+        single_object_mask = np.zeros_like(main_mask)
+        cv.drawContours(single_object_mask, [contour], -1, (255), thickness=cv.FILLED)
+
+        # Utwórz maskę defektów dla pojedynczego obiektu
+        single_object_defect_mask = cv.bitwise_and(single_object_mask, defect_mask)
+
+        # Oblicz udział maski defektu w masce pojedynczego obiektu
+        defect_ratio = np.sum(single_object_defect_mask) / np.sum(single_object_mask)
+
+        # Jeśli udział przekracza próg, zaznacz obiekt konturem na obrazie
+        if defect_ratio * 1000 > threshold:
+            cv.drawContours(image, [contour], -1, (0, 0, 255), 3)
+        else:
+            cv.drawContours(image, [contour], -1, (0, 255, 0), 3)
+
     return image
 
 
@@ -109,11 +136,22 @@ def watching_potatoes():
         if image.shape[0] > image.shape[1]:
             image = cv.rotate(image, cv.ROTATE_90_CLOCKWISE)
 
-        image_mask = create_potato_mask(image)
-        image = find_green_places(image, image_mask)
-        image = find_black_places(image, image_mask)
+        image_copy = image.copy()
 
-        cv.imshow('frame', image)
+        main_mask, image_mask = create_potato_mask(image)
+        green_mask, image = find_green_places(image, image_mask)
+        black_mask, image = find_black_places(image, image_mask)
+
+        cv.imshow('first', image)
+
+        # cv.imshow('black', black_mask*255)
+        # cv.imshow('green', green_mask*255)
+        #
+        # cv.imshow('compilation', (green_mask | black_mask) * 255)
+
+        image_copy = mark_defective_objects(image_copy, main_mask, (green_mask | black_mask))
+
+        cv.imshow('second', image_copy)
         cv.waitKey(20)
 
         if cv.waitKey(1) == ord('q'):
