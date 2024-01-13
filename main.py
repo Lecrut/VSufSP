@@ -42,11 +42,6 @@ def find_green_places(image, potato_mask):
     hsv_color = cv.cvtColor(rgb_color, cv.COLOR_RGB2HSV)
 
     # Zdefiniuj zakres koloru w przestrzeni HSV
-    #todo: ustawić dla finalnego obrazu tą tolerację
-
-    # lower_color = np.array([hsv_color[0][0][0] - 10, 100, 100])
-    # upper_color = np.array([hsv_color[0][0][0] + 10, 255, 255])
-
     lower_color = np.array([hsv_color[0][0][0], 100, 100])
     upper_color = np.array([hsv_color[0][0][0], 255, 255])
 
@@ -62,32 +57,30 @@ def find_green_places(image, potato_mask):
 
     return image
 
-# TODO: poprawić żeby znajdowało te czarne miejsca
+
 def find_black_places(image, potato_mask):
     # Konwertuj obraz do przestrzeni kolorów HSV
     hsv = cv.cvtColor(image, cv.COLOR_BGR2HSV)
 
     # Zdefiniuj kolor RGB
-    rgb_color = np.uint8([[[0, 0, 0]]])
+    # rgb_color = np.uint8([[[69, 41, 24]]])  # Zmieniono kolor RGB
 
     # Konwertuj kolor do przestrzeni HSV
-    hsv_color = cv.cvtColor(rgb_color, cv.COLOR_RGB2HSV)
+    # hsv_color = cv.cvtColor(rgb_color, cv.COLOR_RGB2HSV)
 
     # Zdefiniuj zakres koloru w przestrzeni HSV
-    # todo: ustawić dla finalnego obrazu tą tolerację
+    # lower_color = np.array([0, 0, 0])  # Zakres od czarnego
+    # upper_color = np.array([hsv_color[0][0][0]+10, 255, 255])  # Dodano margines do zakresu koloru
 
-    # lower_color = np.array([hsv_color[0][0][0] - 10, 100, 100])
-    # upper_color = np.array([hsv_color[0][0][0] + 10, 255, 255])
-
-    lower_color = np.array([hsv_color[0][0][0], 0, 0])
-    upper_color = np.array([hsv_color[0][0][0], 20, 20])
+    lower_color = np.array([0, 0, 0])  # Zakres od czarnego
+    upper_color = np.array([120, 120, 120])
 
     # Utwórz maskę dla koloru
     mask = cv.inRange(hsv, lower_color, upper_color)
     mask_2 = potato_mask & mask
 
     # Znajdź kontury na masce
-    contours, _ = cv.findContours(mask_2 * 255, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv.findContours(mask_2*255, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
     # Narysuj kontury na oryginalnym obrazie
     cv.drawContours(image, contours, -1, (255, 0, 0), 3)
@@ -111,7 +104,7 @@ def watching_potatoes():
         if not ret:
             break
 
-        image = rescale(frame, 600)
+        image = rescale(frame, 1000)
 
         if image.shape[0] > image.shape[1]:
             image = cv.rotate(image, cv.ROTATE_90_CLOCKWISE)
