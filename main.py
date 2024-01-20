@@ -2,6 +2,10 @@ import cv2 as cv
 import numpy as np
 
 
+# TODO:
+# - zmiana obrazków w slajdach: 16, 17, 18, 19
+# - dodać zdjęcie złączonych ziemniaków i omówić ten szczególny przypadek na slajdzie: 20
+
 def rescale(img, height=300):
     scale = height / img.shape[0]
 
@@ -20,7 +24,6 @@ def create_potato_mask(image):
 
     contours, _ = cv.findContours(invert, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     filtered_contours = [cnt for cnt in contours if cv.contourArea(cnt) > 3500]
-    cv.drawContours(image, filtered_contours, -1, (0, 0, 255), 3)
 
     mask = np.zeros_like(image_temp)
     for cnt in filtered_contours:
@@ -90,10 +93,11 @@ def find_black_places(image, potato_mask):
     return mask_2, image
 
 
-def mark_defective_objects(image, main_mask, defect_mask, threshold=0.4):
+def mark_defective_objects(image, main_mask, defect_mask, threshold=0.3):
     # Znajdź kontury na głównej masce
     contours, _ = cv.findContours(main_mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-
+    good = 0
+    bad = 0
     # Przejrzyj wszystkie kontury
     for contour in contours:
         # Utwórz maskę dla pojedynczego obiektu
@@ -109,10 +113,12 @@ def mark_defective_objects(image, main_mask, defect_mask, threshold=0.4):
         # Jeśli udział przekracza próg, zaznacz obiekt konturem na obrazie
         if defect_ratio * 1000 > threshold:
             cv.drawContours(image, [contour], -1, (0, 0, 255), 3)
+            bad = bad + 1
         else:
             cv.drawContours(image, [contour], -1, (0, 255, 0), 3)
+            good = good + 1
 
-    return image
+    return image, good, bad
 
 
 def watching_potatoes():
@@ -131,7 +137,7 @@ def watching_potatoes():
         if not ret:
             break
 
-        image = rescale(frame, 1000)
+        image = frame
 
         if image.shape[0] > image.shape[1]:
             image = cv.rotate(image, cv.ROTATE_90_CLOCKWISE)
@@ -142,14 +148,42 @@ def watching_potatoes():
         green_mask, image = find_green_places(image, image_mask)
         black_mask, image = find_black_places(image, image_mask)
 
-        cv.imshow('first', image)
+        # cv.imshow('first', image)
 
         # cv.imshow('black', black_mask*255)
         # cv.imshow('green', green_mask*255)
-        #
-        # cv.imshow('compilation', (green_mask | black_mask) * 255)
 
-        image_copy = mark_defective_objects(image_copy, main_mask, (green_mask | black_mask))
+        # defect_mask = (green_mask | black_mask) * 255
+
+        # cv.imshow('compilation', defect_mask)
+        # cv.imshow('main', main_mask)
+
+        # maska1 = main_mask
+        # maska2 = defect_mask
+        #
+        # maska1_kolor = cv.cvtColor(maska1, cv.COLOR_GRAY2BGR)
+        # maska1_kolor[maska1 != 0] = [255, 255, 255]
+        #
+        # cv.imshow('main', maska1_kolor)
+        #
+        # # Zmień kolor maski2 na inny kolor, na przykład na czerwony
+        # maska2_kolor = cv.cvtColor(maska2, cv.COLOR_GRAY2BGR)
+        # maska2_kolor[maska2 != 0] = [0, 0, 255]  # czerwony kolor
+        #
+        # # Nałóż maska1 na maska2_kolor
+        # finalna_maska = cv.addWeighted(maska1_kolor, 0.5, maska2_kolor, 0.5, 0)
+        #
+        # # Wyświetl finalną maskę
+        # cv.imshow('Finalna Maska', finalna_maska)
+
+        image_copy, good, bad = mark_defective_objects(image_copy, main_mask, (green_mask | black_mask))
+
+        image_copy = rescale(image_copy, 500)
+
+        cv.putText(image_copy, 'Liczba dobrych ziemniakow: {}'.format(good), (10, 20),
+                    cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv.putText(image_copy, 'Liczba zlych ziemniakow: {}'.format(bad), (10, 40),
+                    cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         cv.imshow('second', image_copy)
         cv.waitKey(20)
