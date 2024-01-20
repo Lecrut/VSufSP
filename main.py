@@ -2,10 +2,6 @@ import cv2 as cv
 import numpy as np
 
 
-# TODO:
-# - zmiana obrazków w slajdach: 16, 17, 18, 19
-# - dodać zdjęcie złączonych ziemniaków i omówić ten szczególny przypadek na slajdzie: 20
-
 def rescale(img, height=300):
     scale = height / img.shape[0]
 
