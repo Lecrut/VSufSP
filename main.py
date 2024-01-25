@@ -182,7 +182,7 @@ def watching_potatoes():
                     cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         cv.imshow('second', image_copy)
-        cv.waitKey(20)
+        cv.waitKey(2)
 
         if cv.waitKey(1) == ord('q'):
             break
