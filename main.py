@@ -64,15 +64,6 @@ def find_black_places(image, potato_mask):
     hsv = cv.cvtColor(image, cv.COLOR_BGR2HSV)
 
     # Zdefiniuj kolor RGB
-    # rgb_color = np.uint8([[[69, 41, 24]]])  # Zmieniono kolor RGB
-
-    # Konwertuj kolor do przestrzeni HSV
-    # hsv_color = cv.cvtColor(rgb_color, cv.COLOR_RGB2HSV)
-
-    # Zdefiniuj zakres koloru w przestrzeni HSV
-    # lower_color = np.array([0, 0, 0])  # Zakres od czarnego
-    # upper_color = np.array([hsv_color[0][0][0]+10, 255, 255])  # Dodano margines do zakresu koloru
-
     lower_color = np.array([0, 0, 0])  # Zakres od czarnego
     upper_color = np.array([120, 120, 120])
 
